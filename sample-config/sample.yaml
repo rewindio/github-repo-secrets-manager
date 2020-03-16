@@ -1,0 +1,17 @@
+secrets:
+  -
+    name: SECRET1
+    value: 'myvalue1'
+    repos:
+      - my-org/my-repo1
+      - dnorth98/my-repo2
+  -
+    name: SECRET2
+    value: 'value2'
+    repos:
+      - my-org/my-repo1
+  -
+    name: SECRET3
+    value: '' # Secret will be removed
+    repos:
+      - my-org/my-repo1
