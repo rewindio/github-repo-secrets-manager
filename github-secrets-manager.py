@@ -170,6 +170,7 @@ if __name__ == "__main__":
 
     for secret in secrets['secrets']:
         remove = False
+        repos = []
 
         if secret and 'name' in secret:
             secret_name = secret['name'].strip()
@@ -182,8 +183,18 @@ if __name__ == "__main__":
             logging.info("No value defined for %s - removing parameter from all repos" % secret_name)
             remove = True
 
+        if 'groups' in secret:
+            for group in secret['groups']:
+                if group in secrets['groups']:
+                    repos.extend(secrets['groups'][group])
+                else:
+                    logging.info("No group defined for %s" % group)
+
         if 'repos' in secret:
-            for repo in secret['repos']:
+            repos.extend(secret['repos'])
+
+        if repos:
+            for repo in repos:
                 repo = repo.strip()
 
                 if remove:
