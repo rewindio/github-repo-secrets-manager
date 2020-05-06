@@ -35,6 +35,13 @@ optional arguments:
 ## Configuration File
 
 ```yaml
+groups:
+  pandas:
+    - someuser/my-repo
+    - anotheruser/my-other-repo
+  koalas:
+    - someoneelse/some-other-repo
+
 secrets:
   -
     name: SECRET1
@@ -47,14 +54,16 @@ secrets:
     name: SECRET2
     value: 'value2'
 
-    repos:
-      - myorg/repo-one
+    groups:
+      - pandas
   -
     name: SECRET3
     value: ''
 
     repos:
       - myorg/repo-one
+    groups:
+      - koalas
 ```
 
 **Note**

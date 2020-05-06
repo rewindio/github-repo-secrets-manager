@@ -1,3 +1,10 @@
+groups:
+  pandas:
+    - someuser/my-repo
+    - anotheruser/my-other-repo
+  koalas:
+    - someoneelse/some-other-repo
+
 secrets:
   -
     name: SECRET1
@@ -8,10 +15,12 @@ secrets:
   -
     name: SECRET2
     value: 'value2'
-    repos:
-      - my-org/my-repo1
+    groups:
+      - pandas
   -
     name: SECRET3
     value: '' # Secret will be removed
     repos:
       - my-org/my-repo1
+    groups:
+      - koalas
