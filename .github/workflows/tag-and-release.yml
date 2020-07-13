@@ -3,14 +3,14 @@ name: tag-and-release
 on:
   push:
     branches: 
-      - master
+      - main
 
 jobs:
   release:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@master
+    - uses: actions/checkout@main
 
     - name: Get version
       id: get_version
