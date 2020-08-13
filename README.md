@@ -24,6 +24,9 @@ optional arguments:
                         Secrets file
   --github-pat GITHUB_PAT
                         Github access token
+  --repos REPOS_FILTER
+                        Comma separated list of repos to be updated
+
   --verbose             Turn on DEBUG logging
   --dryrun              Do a dryrun - no changes will be performed
 ```
@@ -31,6 +34,10 @@ optional arguments:
 ```bash
 ./github-secrets-manager.py --secrets-file github_secrets.yaml --github-pat 123456789
 ```
+
+**Note**
+The --repos option acts only as a filter when processing the secrets file.
+The repos must be defined in the secrets file to be updated
 
 ## Configuration File
 

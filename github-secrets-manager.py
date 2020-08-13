@@ -126,6 +126,7 @@ if __name__ == "__main__":
 
     secrets = {}
     public_key_cache = {}
+    repos_filter = []
 
     description = "Synchronize secrets with github repos\n"
 
@@ -134,6 +135,7 @@ if __name__ == "__main__":
     parser.add_argument("--secrets-file", help="Secrets file", dest='secrets_filename', required=True)
     parser.add_argument("--github-pat", help="Github access token", dest='github_pat', required=True)
     parser.add_argument("--verbose", help="Turn on DEBUG logging", action='store_true', required=False)
+    parser.add_argument("--repos", help="Comma separated list of repos to be updated", dest='repos_filter', required=False)
     parser.add_argument("--dryrun", help="Do a dryrun - no changes will be performed", dest='dryrun',
                         action='store_true', default=False,
                         required=False)
@@ -144,6 +146,9 @@ if __name__ == "__main__":
     if args.verbose:
         print('Verbose logging selected')
         log_level = logging.DEBUG
+
+    if args.repos_filter:
+        repos_filter = args.repos_filter.split(',')
 
     # if set, make no changes and log only what would happen
     dryrun = args.dryrun
@@ -197,22 +202,23 @@ if __name__ == "__main__":
             for repo in repos:
                 repo = repo.strip()
 
-                if remove:
-                    if dryrun:
-                        logging.info("DRYRUN: Removing %s from %s" % (secret_name, repo))
-                    else:
-                        if remove_secret(repo, secret_name, github_handle):
-                            logging.info("Successfully removed secret %s from %s" % (secret_name, repo))
+                if len(repos_filter) > 0 and repo in repos_filter:
+                    if remove:
+                        if dryrun:
+                            logging.info("DRYRUN: Removing %s from %s" % (secret_name, repo))
                         else:
-                            logging.error("Unable to remove secret %s from %s" % (secret_name, repo))
-                else:
-                    if dryrun:
-                        logging.info("DRYRUN: Adding %s to %s" % (secret_name, repo))
+                            if remove_secret(repo, secret_name, github_handle):
+                                logging.info("Successfully removed secret %s from %s" % (secret_name, repo))
+                            else:
+                                logging.error("Unable to remove secret %s from %s" % (secret_name, repo))
                     else:
-                        if upsert_secret(repo, secret_name, secret_val, github_handle):
-                            logging.info("Successfully added/updated secret %s in repo %s" % (secret_name, repo))
+                        if dryrun:
+                            logging.info("DRYRUN: Adding %s to %s" % (secret_name, repo))
                         else:
-                            logging.error("Unable to add/update secret %s in repo %s" % (secret_name, repo))
+                            if upsert_secret(repo, secret_name, secret_val, github_handle):
+                                logging.info("Successfully added/updated secret %s in repo %s" % (secret_name, repo))
+                            else:
+                                logging.error("Unable to add/update secret %s in repo %s" % (secret_name, repo))
         else:
             logging.error("No name for secret - unable to manage")
 
