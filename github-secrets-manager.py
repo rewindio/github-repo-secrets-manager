@@ -87,7 +87,7 @@ def upsert_secret(repo_path, secret_name, secret_val, github_handle):
 
                 gh_status, data = github_handle.repos[owner][repo].actions.secrets[secret_name].put(body=request_body, headers=request_headers)
 
-                if gh_status == 204 or status == 201:
+                if gh_status == 204 or gh_status == 201:
                     status = True
                 else:
                     logger.error("Error upserting secret %s : %d" % (repo_path, gh_status))
