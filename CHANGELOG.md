@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## [1.2.1]
+
+- Fix lack of processing when no --repos flag is specified
+
 ## [1.2.0]
 
 - Support for --repos flag for selective application of secrets

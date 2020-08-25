@@ -30,7 +30,7 @@ SCRIPTS = ["github-repo-secrets-manager"]
 
 setup(
     name=NAME,
-    version="1.2.0",
+    version="1.2.1",
     description="Manage github repo secrets using a common configuration file",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
