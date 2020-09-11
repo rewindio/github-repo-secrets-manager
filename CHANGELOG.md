@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 1.3.0
+
+- Add support for organization level secrets
+
 ## [1.2.1]
 
 - Fix lack of processing when no --repos flag is specified

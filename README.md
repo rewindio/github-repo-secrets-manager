@@ -1,6 +1,6 @@
 # github-repo-secrets-manager
 
-Manage github repo secrets using a common configuration file
+Manage github repo secrets using a common configuration file.  Supports repos, orgs and groups of secrets.
 
 ## Installation
 
@@ -9,12 +9,16 @@ git clone rewindio/github-repo-secrets-manager
 pip3 install -r requirements.txt
 ```
 
+## Prerequistes
+
+- A Github Personal Access Token (PAT) that has repo and admin:org scopes
+
 ## Usage
 
 ```bash
 usage: github-secrets-manager.py [-h] --secrets-file SECRETS_FILENAME
                                  --github-pat GITHUB_PAT [--verbose]
-                                 [--dryrun]
+                                 [--repos REPOS_FILTER] [--dryrun]
 
 Synchronize secrets with github repos
 
@@ -24,10 +28,8 @@ optional arguments:
                         Secrets file
   --github-pat GITHUB_PAT
                         Github access token
-  --repos REPOS_FILTER
-                        Comma separated list of repos to be updated
-
   --verbose             Turn on DEBUG logging
+  --repos REPOS_FILTER  Comma separated list of repos to be updated
   --dryrun              Do a dryrun - no changes will be performed
 ```
 
@@ -35,9 +37,10 @@ optional arguments:
 ./github-secrets-manager.py --secrets-file github_secrets.yaml --github-pat 123456789
 ```
 
-**Note**
-The --repos option acts only as a filter when processing the secrets file.
-The repos must be defined in the secrets file to be updated
+### Notes
+
+- The --repos option acts only as a filter when processing the secrets file.
+- The repos must be defined in the secrets file to be updated
 
 ## Configuration File
 
@@ -71,6 +74,12 @@ secrets:
       - myorg/repo-one
     groups:
       - koalas
+  -
+    name: SECRET4
+    value: 'an org level secret'
+
+    orgs:
+      - acme
 ```
 
 **Note**
