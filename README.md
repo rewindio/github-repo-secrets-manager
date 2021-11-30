@@ -13,6 +13,9 @@ pip3 install -r requirements.txt
 
 - A Github Personal Access Token (PAT) that has repo and admin:org scopes
 
+To update Org-wide secrets, you need to have permissions to edit the secrets at the Org level.
+Repository secrets can be updated without this access.
+
 ## Usage
 
 ```bash
