@@ -42,6 +42,7 @@ optional arguments:
 
 ### Notes
 
+- You must be a GitHub Organization admin if you try to apply organization level secrets, or you will see errors. The script will continue and other changes will work as intended.
 - The --repos option acts only as a filter when processing the secrets file.
 - The repos must be defined in the secrets file to be updated
 
