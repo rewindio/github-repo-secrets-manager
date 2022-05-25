@@ -48,7 +48,7 @@ def get_public_key(path, github_handle, target="actions"):
 
     if cache_key_id in public_key_cache:
         logging.debug("Public key cache hit for %s" % path)
-        key = public_key_cache[path]
+        key = public_key_cache[cache_key_id]
     else:
         logging.debug("Public key cache miss for %s" % path)
 
