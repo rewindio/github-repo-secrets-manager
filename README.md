@@ -84,6 +84,19 @@ secrets:
 
     orgs:
       - acme
+
+dependabot:
+  -
+    name: DEPENDABOT_SECRET1
+    value: 'dummy'
+    orgs:
+      - acme
+  -
+    name: DEPENDABOT_REPO_SECRET1
+    value: ''
+    orgs:
+      - myorg/repo-one
+
 ```
 
 **Note**
