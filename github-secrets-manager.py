@@ -40,12 +40,13 @@ def is_repo(path):
     return False
 
 """Get the public key used to encrypt secrets for the org or a repo"""
-def get_public_key(path, github_handle):
+def get_public_key(path, github_handle, target="actions"):
     global public_key_cache
     gh_status = 0
     key = {'key_id': '', 'key': ''}
+    cache_key_id = path + "/" + target
 
-    if path in public_key_cache:
+    if cache_key_id in public_key_cache:
         logging.debug("Public key cache hit for %s" % path)
         key = public_key_cache[path]
     else:
@@ -55,16 +56,16 @@ def get_public_key(path, github_handle):
             owner, repo = path.split('/')
 
             if owner and repo:
-                gh_status, data = github_handle.repos[owner][repo].actions.secrets['public-key'].get()
+                gh_status, data = github_handle.repos[owner][repo][target].secrets['public-key'].get()
             else:
                 logging.error("unable to determine owner and repo from %s" % path)
         else:
             # org key
-            gh_status, data = github_handle.orgs[path].actions.secrets['public-key'].get()
+            gh_status, data = github_handle.orgs[path][target].secrets['public-key'].get()
 
         if gh_status == 200:
             logging.debug("Successfully read private key for %s" % path)
-            public_key_cache[path] = data
+            public_key_cache[cache_key_id] = data
             key = data
         else:
             logging.error("Error reading private key for %s : %d" % (path, gh_status))
@@ -72,7 +73,7 @@ def get_public_key(path, github_handle):
     return key
 
 """Check if a secret already exists on a repo or for the org"""
-def secret_exists(path, secret_name, github_handle):
+def secret_exists(path, secret_name, github_handle, target="actions"):
     status = False
     gh_status = 0
 
@@ -80,12 +81,12 @@ def secret_exists(path, secret_name, github_handle):
         owner, repo = path.split('/')
 
         if owner and repo:
-            gh_status, data = github_handle.repos[owner][repo].actions.secrets[secret_name].get()
+            gh_status, data = github_handle.repos[owner][repo][target].secrets[secret_name].get()
         else:
             logging.error("unable to determine owner and repo from %s" % path)
     else:
         # This is an org secret
-        gh_status, data = github_handle.orgs[path].actions.secrets[secret_name].get()
+        gh_status, data = github_handle.orgs[path][target].secrets[secret_name].get()
 
     if gh_status == 200:
         status = True
@@ -93,13 +94,13 @@ def secret_exists(path, secret_name, github_handle):
     return status
 
 """Add or update a secret in a github repo or org"""
-def upsert_secret(path, secret_name, secret_val, github_handle):
+def upsert_secret(path, secret_name, secret_val, github_handle, target="actions"):
     status = False
     gh_status = 0
 
     logger.info("Upserting path:%s sec:%s val:%s" % (path, secret_name, secret_val))
 
-    public_key = get_public_key(path, github_handle)
+    public_key = get_public_key(path, github_handle, target)
 
     if public_key['key']:
         if public_key['key_id']:
@@ -112,13 +113,13 @@ def upsert_secret(path, secret_name, secret_val, github_handle):
                 owner, repo = path.split('/')
 
                 if owner and repo:
-                    gh_status, data = github_handle.repos[owner][repo].actions.secrets[secret_name].put(body=request_body, headers=request_headers)
+                    gh_status, data = github_handle.repos[owner][repo][target].secrets[secret_name].put(body=request_body, headers=request_headers)
                 else:
                     logging.error("unable to determine owner and repo from %s" % path)
             else:
                 # org secret
                 request_body['visibility'] = 'private'  # this secret will only be visible to private repos in the org
-                gh_status, data = github_handle.orgs[path].actions.secrets[secret_name].put(body=request_body, headers=request_headers)
+                gh_status, data = github_handle.orgs[path][target].secrets[secret_name].put(body=request_body, headers=request_headers)
 
             if gh_status == 204 or gh_status == 201:
                 status = True
@@ -132,20 +133,20 @@ def upsert_secret(path, secret_name, secret_val, github_handle):
     return status
 
 """Remove a secret from a github repo or org"""
-def remove_secret(path, secret_name, github_handle):
+def remove_secret(path, secret_name, github_handle, target="actions"):
     status = False
 
-    if secret_exists(path, secret_name, github_handle):
+    if secret_exists(path, secret_name, github_handle, target):
         if is_repo(path):
             owner, repo = path.split('/')
 
             if owner and repo:
-                gh_status, data = github_handle.repos[owner][repo].actions.secrets[secret_name].delete()
+                gh_status, data = github_handle.repos[owner][repo][target].secrets[secret_name].delete()
             else:
                 logging.error("unable to determine owner and repo from %s" % path)
         else:
             # org secret
-            gh_status, data = github_handle.orgs[path].actions.secrets[secret_name].delete()
+            gh_status, data = github_handle.orgs[path][target].secrets[secret_name].delete()
 
         if gh_status == 204:
             status = True
@@ -155,6 +156,77 @@ def remove_secret(path, secret_name, github_handle):
         status = True  # Treat as if it was a removal if secret does not exist
 
     return status
+
+def manage_secret(secret, github_handle, groups, target):
+        remove = False
+        repos = []
+        orgs = []
+
+        if secret and 'name' in secret:
+            secret_name = secret['name'].strip()
+            logging.info("Secret found: %s" % secret_name)
+
+        if 'value' in secret and secret['value']:
+            secret_val = secret['value']
+        else:
+            # We assume if there is no value, we are removing the secret
+            logging.info("No value defined for %s - removing parameter from all repos" % secret_name)
+            remove = True
+
+        if 'groups' in secret:
+            for group in secret['groups']:
+                if group in groups:
+                    repos.extend(groups[group])
+                else:
+                    logging.info("No group defined for %s" % group)
+
+        if 'orgs' in secret:
+            orgs.extend(secret['orgs'])
+
+        if 'repos' in secret:
+            repos.extend(secret['repos'])
+
+        # Process any org values first
+        if orgs:
+            for org in orgs:
+                if remove:
+                    if dryrun:
+                        logging.info("DRYRUN: Removing %s from org %s" % (secret_name, org))
+                    else:
+                        if remove_secret(org, secret_name, github_handle, target):
+                            logging.info("Successfully removed secret %s from org %s" % (secret_name, org))
+                        else:
+                            logging.error("Unable to remove secret %s from org %s" % (secret_name, org))
+                else:
+                    if dryrun:
+                        logging.info("DRYRUN: Adding %s to org %s" % (secret_name, org))
+                    else:
+                        if upsert_secret(org, secret_name, secret_val, github_handle, target):
+                            logging.info("Successfully added/updated secret %s in org %s" % (secret_name, org))
+                        else:
+                            logging.error("Unable to add/update secret %s in org %s" % (secret_name, org))
+                
+        if repos:
+            for repo in repos:
+                repo = repo.strip()
+
+                if ( len(repos_filter) > 0 and repo in repos_filter) or len(repos_filter) == 0:
+                    if remove:
+                        if dryrun:
+                            logging.info("DRYRUN: Removing %s from repo %s" % (secret_name, repo))
+                        else:
+                            if remove_secret(repo, secret_name, github_handle, target):
+                                logging.info("Successfully removed secret %s from repo %s" % (secret_name, repo))
+                            else:
+                                logging.error("Unable to remove secret %s from repo %s" % (secret_name, repo))
+                    else:
+                        if dryrun:
+                            logging.info("DRYRUN: Adding %s to %s" % (secret_name, repo))
+                        else:
+                            if upsert_secret(repo, secret_name, secret_val, github_handle, target):
+                                logging.info("Successfully added/updated secret %s in repo %s" % (secret_name, repo))
+                            else:
+                                logging.error("Unable to add/update secret %s in repo %s" % (secret_name, repo))
 
 
 if __name__ == "__main__":
@@ -203,77 +275,17 @@ if __name__ == "__main__":
     # Initialize connection to Github API
     github_handle = GitHub(token=args.github_pat)
 
+    groups={}
+    if 'groups' in secrets:
+        groups = secrets['groups']
+
     # Loop over each secret in the config file
     # For each, determine if we are adding it to a repo or globally to an org
     for secret in secrets['secrets']:
-        remove = False
-        repos = []
-        orgs = []
+        manage_secret(secret, github_handle, groups, "actions")
 
-        if secret and 'name' in secret:
-            secret_name = secret['name'].strip()
-            logging.info("Secret found: %s" % secret_name)
-
-        if 'value' in secret and secret['value']:
-            secret_val = secret['value']
-        else:
-            # We assume if there is no value, we are removing the secret
-            logging.info("No value defined for %s - removing parameter from all repos" % secret_name)
-            remove = True
-
-        if 'groups' in secret:
-            for group in secret['groups']:
-                if group in secrets['groups']:
-                    repos.extend(secrets['groups'][group])
-                else:
-                    logging.info("No group defined for %s" % group)
-
-        if 'orgs' in secret:
-            orgs.extend(secret['orgs'])
-
-        if 'repos' in secret:
-            repos.extend(secret['repos'])
-
-        # Process any org values first
-        if orgs:
-            for org in orgs:
-                if remove:
-                    if dryrun:
-                        logging.info("DRYRUN: Removing %s from org %s" % (secret_name, org))
-                    else:
-                        if remove_secret(org, secret_name, github_handle):
-                            logging.info("Successfully removed secret %s from org %s" % (secret_name, org))
-                        else:
-                            logging.error("Unable to remove secret %s from org %s" % (secret_name, org))
-                else:
-                    if dryrun:
-                        logging.info("DRYRUN: Adding %s to org %s" % (secret_name, org))
-                    else:
-                        if upsert_secret(org, secret_name, secret_val, github_handle):
-                            logging.info("Successfully added/updated secret %s in org %s" % (secret_name, org))
-                        else:
-                            logging.error("Unable to add/update secret %s in org %s" % (secret_name, org))
-                
-        if repos:
-            for repo in repos:
-                repo = repo.strip()
-
-                if ( len(repos_filter) > 0 and repo in repos_filter) or len(repos_filter) == 0:
-                    if remove:
-                        if dryrun:
-                            logging.info("DRYRUN: Removing %s from repo %s" % (secret_name, repo))
-                        else:
-                            if remove_secret(repo, secret_name, github_handle):
-                                logging.info("Successfully removed secret %s from repo %s" % (secret_name, repo))
-                            else:
-                                logging.error("Unable to remove secret %s from repo %s" % (secret_name, repo))
-                    else:
-                        if dryrun:
-                            logging.info("DRYRUN: Adding %s to %s" % (secret_name, repo))
-                        else:
-                            if upsert_secret(repo, secret_name, secret_val, github_handle):
-                                logging.info("Successfully added/updated secret %s in repo %s" % (secret_name, repo))
-                            else:
-                                logging.error("Unable to add/update secret %s in repo %s" % (secret_name, repo))
+    if 'dependabot' in secrets:
+        for secret in secrets['dependabot']:
+            manage_secret(secret, github_handle, groups, "dependabot")
 
     logging.info("Complete")
