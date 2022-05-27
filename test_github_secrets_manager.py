@@ -1,8 +1,6 @@
-from encodings import utf_8
 import unittest
 from unittest.mock import Mock, MagicMock
 import importlib
-import secrets
 import base64
 
 sm = importlib.import_module("github-secrets-manager")
@@ -40,11 +38,6 @@ class TestSecretsManager(unittest.TestCase):
             "public-key"
         ].get.return_value = (200, test_public_key)
         # Repo
-        self.assertEqual(
-            sm.get_public_key("org1/repo1", m_repo_action_handle, "actions"),
-            test_public_key,
-        )
-        ## Test getting from cache
         self.assertEqual(
             sm.get_public_key("org1/repo1", m_repo_action_handle, "actions"),
             test_public_key,

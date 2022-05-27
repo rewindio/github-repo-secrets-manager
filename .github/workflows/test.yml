@@ -24,10 +24,6 @@ jobs:
         run:  |
           black . --check
 
-      - name: Lint
-        run:  |
-          pylint $(git ls-files '*.py') 
-
       - name: Test
         run:  |
           pytest --cov=. test*.py > pytest-coverage.txt
