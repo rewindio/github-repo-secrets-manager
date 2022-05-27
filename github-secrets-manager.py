@@ -202,6 +202,7 @@ def manage_secret(secret, github_handle, groups, target):
     remove = False
     repos = []
     orgs = []
+    errors = 0
 
     if secret and "name" in secret:
         secret_name = secret["name"].strip()
@@ -246,6 +247,7 @@ def manage_secret(secret, github_handle, groups, target):
                             "Unable to remove secret %s from org %s"
                             % (secret_name, org)
                         )
+                        errors += 1
             else:
                 if dryrun:
                     logging.info("DRYRUN: Adding %s to org %s" % (secret_name, org))
@@ -262,6 +264,7 @@ def manage_secret(secret, github_handle, groups, target):
                             "Unable to add/update secret %s in org %s"
                             % (secret_name, org)
                         )
+                        errors += 1
 
     if repos:
         for repo in repos:
@@ -286,6 +289,7 @@ def manage_secret(secret, github_handle, groups, target):
                                 "Unable to remove secret %s from repo %s"
                                 % (secret_name, repo)
                             )
+                            errors += 1
                 else:
                     if dryrun:
                         logging.info("DRYRUN: Adding %s to %s" % (secret_name, repo))
@@ -302,6 +306,9 @@ def manage_secret(secret, github_handle, groups, target):
                                 "Unable to add/update secret %s in repo %s"
                                 % (secret_name, repo)
                             )
+                            errors += 1
+
+    return errors
 
 
 if __name__ == "__main__":

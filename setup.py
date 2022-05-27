@@ -7,12 +7,14 @@ __location__ = os.path.join(
     os.getcwd(), os.path.dirname(inspect.getfile(inspect.currentframe()))
 )
 
+
 def get_install_requirements(path):
     with open(os.path.join(__location__, path), "r") as f:
         content = f.read()
         requires = [req for req in content.split("\\n") if req != ""]
 
     return requires
+
 
 NAME = "github-repo-secrets-manager"
 PROJECT_URLS = {

@@ -1,0 +1,32 @@
+name: Lint/Test
+
+on: [pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      PYTHON_VERSION: 3.9
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v2
+
+      - name: Set up python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Dependencies
+        run: pip install -r requirements-test.txt
+
+      - name: Format
+        run:  |
+          black . --check
+
+      - name: Test
+        run:  |
+          pytest --cov=. test*.py > pytest-coverage.txt
+      
+      - name: Comment coverage
+        uses: coroo/pytest-coverage-commentator@v1.0.2
