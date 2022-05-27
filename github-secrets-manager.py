@@ -202,7 +202,7 @@ def manage_secret(secret, github_handle, groups, target):
     remove = False
     repos = []
     orgs = []
-    errors  = 0
+    errors = 0
 
     if secret and "name" in secret:
         secret_name = secret["name"].strip()
@@ -307,8 +307,9 @@ def manage_secret(secret, github_handle, groups, target):
                                 % (secret_name, repo)
                             )
                             errors += 1
-    
-    return errors  
+
+    return errors
+
 
 if __name__ == "__main__":
     secrets = {}
