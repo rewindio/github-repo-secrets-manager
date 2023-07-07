@@ -26,7 +26,10 @@ jobs:
 
       - name: Test
         run:  |
-          pytest --cov=. test*.py > pytest-coverage.txt
-      
+          pytest --junitxml=pytest.xml --cov=. test*.py > pytest-coverage.txt
+
       - name: Comment coverage
-        uses: coroo/pytest-coverage-commentator@v1.0.2
+        uses: MishaKav/pytest-coverage-comment@main
+        with:
+          pytest-coverage-path: ./pytest-coverage.txt
+          junitxml-path: ./pytest.xml
