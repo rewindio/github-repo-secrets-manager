@@ -20,7 +20,6 @@ class TestSecretsManager(unittest.TestCase):
         sm.dryrun = False
 
     def generate_key(self):
-
         pk = "htwDayWo5EVxRHweGWIUHS2SoWrQWUf5".encode()
         return base64.b64encode(pk).decode()
 
@@ -31,7 +30,6 @@ class TestSecretsManager(unittest.TestCase):
         self.assertFalse(sm.is_repo("org1"))
 
     def test_actions_get_public_key(self):
-
         test_public_key = {"key": 123, "key_id": "1235"}
         m_repo_action_handle = MagicMock()
         m_repo_action_handle.repos["org1"]["repo1"]["actions"].secrets[
@@ -56,7 +54,6 @@ class TestSecretsManager(unittest.TestCase):
         self.assertEqual(sm.public_key_cache["org1/actions"], test_public_key)
 
     def test_dependabot_get_public_key(self):
-
         test_public_key = {"key": 123, "key_id": "1235"}
 
         m_repo_dependabot_handle = MagicMock()
@@ -84,7 +81,6 @@ class TestSecretsManager(unittest.TestCase):
         self.assertEqual(sm.public_key_cache["org1/dependabot"], test_public_key)
 
     def test_upsert_secret(self):
-
         m_repo_action_handle = MagicMock()
         m_repo_action_handle.repos["org2"]["repo2"]["actions"].secrets[
             "secret1"
@@ -102,7 +98,6 @@ class TestSecretsManager(unittest.TestCase):
         )
 
     def test_remove_secret(self):
-
         m_repo_action_handle = MagicMock()
         m_repo_action_handle.repos["org2"]["repo2"]["actions"].secrets[
             "secret1"
@@ -121,7 +116,6 @@ class TestSecretsManager(unittest.TestCase):
         )
 
     def test_manage_secret(self):
-
         secret = {"name": "SECRET3", "value": "dummy", "orgs": ["org2"]}
 
         sm.public_key_cache["org2/actions"] = {
