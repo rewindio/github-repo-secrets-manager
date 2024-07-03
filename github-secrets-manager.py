@@ -143,9 +143,9 @@ def upsert_secret(path, secret_name, secret_val, github_handle, target="actions"
                     logging.error("unable to determine owner and repo from %s" % path)
             else:
                 # org secret
-                request_body[
-                    "visibility"
-                ] = "private"  # this secret will only be visible to private repos in the org
+                request_body["visibility"] = (
+                    "private"  # this secret will only be visible to private repos in the org
+                )
                 gh_status, data = (
                     github_handle.orgs[path][target]
                     .secrets[secret_name]
