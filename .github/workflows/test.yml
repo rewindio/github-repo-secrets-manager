@@ -5,6 +5,10 @@ on: [pull_request]
 jobs:
   test:
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: read
+      id-token: write
     env:
       PYTHON_VERSION: 3.9
 
