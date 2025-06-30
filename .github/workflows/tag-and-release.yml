@@ -46,7 +46,7 @@ jobs:
         echo "SHA256: ${checksum}" >> REL-BODY.md
 
     - name: Create Release
-      uses: ncipollo/release-action@440c8c1cb0ed28b9f43e4d1d670870f059653174 # v1.16.0
+      uses: ncipollo/release-action@bcfe5470707e8832e12347755757cec0eb3c22af # v1.18.0
       with:
         tag: ${{steps.get_version.outputs.version_tag}}
         artifacts: "github-secrets-manager*.tar.gz, sha256.sum"
