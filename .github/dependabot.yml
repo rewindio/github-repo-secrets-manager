@@ -6,8 +6,6 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
-    reviewers:
-      - "rewindio/devops"
     labels:
       - "appsec"
     open-pull-requests-limit: 10
