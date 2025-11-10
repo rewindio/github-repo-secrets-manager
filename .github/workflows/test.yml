@@ -32,7 +32,7 @@ jobs:
           pytest --junitxml=pytest.xml --cov=. test*.py > pytest-coverage.txt
 
       - name: Comment coverage
-        uses: MishaKav/pytest-coverage-comment@9638e4b1448019aba40c4aaaa1ade87a9f211aa1 # v1.1.56
+        uses: MishaKav/pytest-coverage-comment@dda025d84b1dd831193ed9cd5b1d7e33c79efa9b # v1.1.59
         with:
           pytest-coverage-path: ./pytest-coverage.txt
           junitxml-path: ./pytest.xml
